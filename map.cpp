@@ -83,7 +83,7 @@ void Map::createPlayers(int gameMode)
             break;
         case 2:
             player1 = new Player("blue",true, 1);
-            player2 = new Player("rec",false, 2);
+            player2 = new Player("red",false, 2);
             break;
     }
 }
@@ -99,7 +99,7 @@ void Map::setMove()
         if(!currentPlayer->isCPU)
         {
             string input = currentPlayer->returnInput();
-            coords = detAction(input);
+            coords = currentPlayer->detMove(map,input);
         }
         else
         {
@@ -126,33 +126,51 @@ bool Map::giveError(int x, int y, pair<int, int> &coords)
     }
     else
     {
-        currentPlayer -> saveMove(coords);
+        currentPlayer->saveMove(coords);
         inputMove(x,y);
         moves.push(coords);
         return true;
     }
 }
 
-pair<int,int> Map::detAction(string input)
+void Map::moveMenu()
 {
-    if(input == "del")
+    cout << currentPlayer->color << endl;
+    bool moveValid = false;
+    string input;
+
+    cout << "1 : pierule" << endl;
+
+    cout << "2 : delete move" << endl;
+
+    cout << "3 : set move" << endl;
+
+    while(!moveValid)
     {
-        deleteMove();
-        view->print(map);
-        return make_pair(-10,-10);
+        cout << "input option: ";
+        cin >> input;
+        if(input == "1")
+        {
+            pieRule();
+            view->print(map);
+            moveValid = true;
+        }
+        else if(input == "2")
+        {
+            deleteMove();
+            view->print(map);
+            moveValid = true;
+        }
+        else if(input == "3")
+        {
+            setMove();
+            moveValid = true;
+        }
+        else
+        {
+            cout << "dusnt werk" << endl;
+        }
     }
-    else if(moves.size() == 1 && input == "pie")
-    {
-        pieRule();
-        switchPlayer();
-        view->print(map);
-        return make_pair(-10,-10);
-    }
-    else
-    {
-        return currentPlayer->detMove(map,input);
-    }
-    throw invalid_argument("input not possible");
 }
 
 void Map::inputMove(int x, int y)
@@ -337,7 +355,7 @@ void Map::deleteMove()
 
 void Map::update()
 {
-    setMove();
+    moveMenu();
     checkWinner();
     view->print(map);
     switchPlayer();

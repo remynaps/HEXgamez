@@ -118,7 +118,7 @@ pair<int,int> Player::extractMove(vector< vector< int > > &map, vector< vector< 
         {
             if(map[i][j] != calcMap[i][j])
             {
-                return make_pair(i,j);
+                return make_pair(j,i);
             }
         }
     }
@@ -240,7 +240,7 @@ int Player::evaluate(vector< vector< int > > map)
                     {
                         if(map[x][y] == number)
                         {
-                            score += 100;
+                            score += 1000;
                         }
                         else if(map[x][y] == getOtherPlayer())
                         {

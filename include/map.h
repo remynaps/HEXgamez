@@ -35,6 +35,7 @@ public:
 
     bool hasWinner;
 
+    void moveMenu();
     void createMap(int height, int width);
     void createPlayers(int gameMode);
     void setStartPlayer(int playerNumber);
