@@ -1,0 +1,353 @@
+#include <chrono>
+#include <iostream>
+#include <math.h>
+#include <vector>
+#include <thread>
+#include "include/map.h"
+#include "include/player.h"
+#include "include/view.h"
+
+using namespace std;
+
+Map::Map(int width, int height, int gameMode, int maxStep, int startPlayer)
+{
+    view = new View();
+    hasWinner = false;
+
+    this -> createMap(height, width);
+    this -> createPlayers(gameMode);
+
+    this -> width = width;
+    this -> height = height;
+    this -> gameMode = gameMode;
+    this -> maxStep = maxStep;
+    this -> startPlayer = startPlayer;
+
+    setStartPlayer(startPlayer);
+    view->print(map);
+}
+
+Map::~Map()
+{
+    delete view;
+    delete player1;
+    delete player2; 
+}
+
+void Map::createMap(int height, int width)
+{
+    for(int i = 0; i < height; i++)
+    {
+        std::vector<int> temp_vec;
+        for(int j = 0; j < width; j++)
+        {
+            temp_vec.push_back(0);
+        }
+        map.push_back(temp_vec);
+    }
+}
+
+vector<pair<int, int>> Map::getConnections(int x, int y)
+{
+    std::vector<pair<int, int>> moves;
+    moves.push_back(make_pair(x-1,y));
+    moves.push_back(make_pair(x-1,y+1));
+    moves.push_back(make_pair(x,y-1));
+    moves.push_back(make_pair(x,y+1));
+    moves.push_back(make_pair(x+1,y-1));
+    moves.push_back(make_pair(x+1,y));
+
+    return moves;
+}
+
+void Map::setStartPlayer(int playerNumber)
+{
+    switch(playerNumber)
+    {
+        case 1:
+            currentPlayer = player2;
+            break;
+        case 2:
+            currentPlayer = player1;
+            break;
+    }
+}
+
+void Map::createPlayers(int gameMode)
+{
+    switch(gameMode)
+    {
+        case 1:
+            player1 = new Player("blue",false, 1);
+            player2 = new Player("red",false, 2);
+            break;
+        case 2:
+            player1 = new Player("blue",true, 1);
+            player2 = new Player("rec",false, 2);
+            break;
+    }
+}
+
+void Map::setMove()
+{
+    pair<int, int> coords;
+    bool moveValid = false;
+
+    while(!moveValid)
+    {
+
+        if(!currentPlayer->isCPU)
+        {
+            string input = currentPlayer->returnInput();
+            coords = detAction(input);
+        }
+        else
+        {
+            coords = currentPlayer->detMove(map);
+        }
+
+        int x = std::get<0>(coords);
+        int y = std::get<1>(coords);
+        moveValid = giveError(x,y, coords);
+    }
+}
+
+bool Map::giveError(int x, int y, pair<int, int> &coords)
+{
+    if(x >= map.size() || y >= map.size())
+    {
+        cout << "point does not exist" << endl;
+        return false;
+    }
+    else if(map[y][x] == 1 || map[y][x] == 2)
+    {
+        cout << "point is already taken" << endl;
+        return false;
+    }
+    else
+    {
+        currentPlayer -> saveMove(coords);
+        inputMove(x,y);
+        moves.push(coords);
+        return true;
+    }
+}
+
+pair<int,int> Map::detAction(string input)
+{
+    if(input == "del")
+    {
+        deleteMove();
+        view->print(map);
+        return make_pair(-10,-10);
+    }
+    else if(moves.size() == 1 && input == "pie")
+    {
+        pieRule();
+        switchPlayer();
+        view->print(map);
+        return make_pair(-10,-10);
+    }
+    else
+    {
+        return currentPlayer->detMove(map,input);
+    }
+    throw invalid_argument("input not possible");
+}
+
+void Map::inputMove(int x, int y)
+{
+    map[y][x] = currentPlayer->number;
+}
+
+void Map::switchPlayer()
+{
+    if(currentPlayer == player1)
+    {
+        currentPlayer = player2;
+    }
+    else
+    {
+        currentPlayer = player1;
+    }
+}
+
+void Map::pieRule()
+{
+    for(int i = 0; i < moves.size(); i++)
+    {
+        pair<int,int> firstMove = moves.top();
+        int x = std::get<0>(firstMove);
+        int y = std::get<1>(firstMove);
+        switch(map[y][x])
+        {
+            case 1:
+                map[y][x] = 2;
+            case 2:
+                map[y][x] = 1;
+        }
+    }
+}
+
+//start building a path if a move is detected on the player generated end position.
+void Map::checkWinner()
+{
+    for(int i = 0; i < map.size(); i++)
+    {
+        if(map[i][map[i].size() -1 ] == 1)
+        {
+            startPath(i, 1);
+        }
+        if(map[map[i].size() -1 ][i] == 2)
+        {
+            cout << "---------" << endl;
+            startPath(i, 2);
+        }
+    }
+}
+
+//return the position required to finish the map.
+//the answer depends on the supplied playerNumber;
+pair<int,int> Map::getEndPosition(int playerNumber, int position)
+{
+    pair<int,int> redEnd;
+    pair<int,int> blueEnd;
+    switch(playerNumber)
+    {
+        case 1:
+            redEnd = make_pair(map[position].size()-1,position);
+            return redEnd;
+        case 2:
+            blueEnd = make_pair(position,map[position].size()-1);
+            return blueEnd;
+    }
+    throw invalid_argument("playerNumber does not exist");
+}
+
+//start calculating a [ath when a point is located on the end position and on the start position
+void Map::startPath(int position, int playerNumber)
+{
+    vector<pair<int, int>> path;
+    vector<thread> workers;
+
+    pair<int, int> endPosition = getEndPosition(playerNumber, position);
+    int endX = std::get<0>(endPosition);
+    int endY = std::get<1>(endPosition);
+
+    path.push_back(endPosition);
+
+    buildPath(endY,endX, playerNumber, path, workers);
+
+    for(auto &th: workers)
+    {
+        th.join();
+    }
+
+}
+
+//actually build the path recursivly
+//@todo multithreading when more than one connection is located.
+void Map::buildPath(int currentX, int currentY, int playerNumber, vector<pair<int, int>> &path, vector<thread> &workers)
+{
+    vector<pair<int, int>> connections = getConnections(currentX,currentY);
+    int numberConnections = 0;
+    for(int i = 0; i < connections.size(); i++)
+    {
+        int x = std::get<0>(connections[i]);
+        int y = std::get<1>(connections[i]);
+
+        if(x < map.size() && x >= 0 && y < map.size() && y >= 0)
+        {
+            determineWinner(x,y,playerNumber,path, numberConnections, workers);
+        }
+    }
+}
+
+//determine the winner of the game and quit the game.
+void Map::determineWinner(int x, int y, int playerNumber, vector<pair<int, int>> &path, int &numberConnections, vector<thread> &workers)
+{
+    if(map[x][y] == playerNumber && !stepTaken(x,y,path))
+    {
+        cout << x << " : " << y << endl;
+        path.push_back(make_pair(x,y));
+
+        if(playerNumber == 1 && y == 0)
+        {
+            cout << "OMGWINNERZ BLUEZ" << endl;
+            hasWinner = true;
+        }
+        else if(playerNumber == 2 && x == 0)
+        {
+            cout << "OMGWINNERZ REDZ" << endl;
+            hasWinner = true;
+        }
+        else
+        {
+            numberConnections++;
+            if(numberConnections > 1)
+            {
+                pathThread(x, y, playerNumber, path, workers);
+            }
+            else
+            {
+                buildPath(x, y, playerNumber, path, workers);
+            }
+        }
+    }
+}
+
+void Map::pathThread(int x, int y, int playerNumber, vector<pair<int, int>> &path, vector<thread> &workers)
+{
+    workers.push_back(std::thread([x, y, playerNumber, &path, &workers, this]()
+    {
+        this->buildPath(x, y, playerNumber, path ,workers);
+    }));
+}
+
+bool Map::stepTaken(int x, int y, vector<pair<int,int>> &path)
+{
+    for(int j = 0; j < path.size(); j++)
+    {
+        pair<int,int> takenStep = path[j];
+
+        int takenX = std::get<0>(takenStep);
+        int takenY = std::get<1>(takenStep); 
+
+        if(takenY == y && takenX == x)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Map::deleteMove()
+{
+    if(!moves.empty())
+    {
+        pair<int,int> move = moves.top();
+
+        int takenX = std::get<0>(move);
+        int takenY = std::get<1>(move);
+
+        map[takenY][takenX] = 0;
+        moves.pop();
+    }
+}
+
+void Map::update()
+{
+    setMove();
+    checkWinner();
+    view->print(map);
+    switchPlayer();
+}
+
+
+
+
+
+
+
+
+
