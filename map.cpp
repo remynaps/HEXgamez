@@ -291,12 +291,10 @@ void Map::determineWinner(int x, int y, int playerNumber, vector<pair<int, int>>
 
         if(playerNumber == 1 && y == 0)
         {
-            cout << "OMGWINNERZ BLUEZ" << endl;
             hasWinner = true;
         }
         else if(playerNumber == 2 && x == 0)
         {
-            cout << "OMGWINNERZ REDZ" << endl;
             hasWinner = true;
         }
         else

@@ -43,6 +43,16 @@ public:
     int getOtherPlayer();
     vector<pair<int, int>> getConnections(int x, int y);
     pair<int,int> extractMove(vector< vector< int > > &map, vector< vector< int > > calcMap);
+    int scorePath(vector< vector< int > > &map, vector<pair<int, int>> path);
+    vector<pair<int, int>> getPath(pair<int,int> move, vector< vector< int > > &map);
+    int pathThread(int x, int y, int playerNumber, vector<pair<int, int>> &path,  vector<thread> &workers, vector< vector< int > > &map);
+    pair<int,int>getEndPosition(int playerNumber, int position, vector< vector< int > > &map);
+    int startPath(int position, int playerNumber, vector< vector< int > > &map);
+    int buildPath(int x,int y, int playerNumber, vector<pair<int, int>> &path,  vector<thread> &workers, vector< vector< int > > &map);
+    int monteCarlo(vector< vector< int > > &map);
+    bool stepTaken(int x, int y, vector<pair<int,int>> &path, vector< vector< int > > &map);
+    int checkWinner(vector< vector< int > > &map);
+    int determineWinner(int x, int y, int playerNumber, vector<pair<int, int>> &path, int &numberConnections, vector<thread> &workers ,vector< vector< int > > &map);
 };
 
 #endif // __PLAYER_H_INCLUDED__ 
