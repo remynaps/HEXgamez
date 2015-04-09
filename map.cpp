@@ -125,6 +125,7 @@ void Map::setMove()
         }
         else
         {
+            cout <<endl << "Calculating best move...." << endl;
             coords = currentPlayer->detMove(map);
         }
 
@@ -157,6 +158,16 @@ bool Map::giveError(int x, int y, pair<int, int> &coords)
 
 void Map::moveMenu()
 {
+    if(!moves.empty())
+    {
+        pair<int,int> lastMove = moves.top();
+        int x = std::get<0>(lastMove);
+        int y = std::get<1>(lastMove);
+
+        char letter = (char(x + 65));
+        cout << "Last Move: " << letter << y + 1 << endl << endl;
+    }
+
     cout << currentPlayer->color << endl;
     bool moveValid = false;
     string input;
@@ -165,8 +176,10 @@ void Map::moveMenu()
     {
         cout << "1 : pierule" << endl;
     }
-
-    cout << "2 : delete move" << endl;
+    if(!moves.empty())
+    {
+        cout << "2 : delete move" << endl;
+    }
 
     cout << "3 : set move" << endl;
 
@@ -180,7 +193,7 @@ void Map::moveMenu()
             view->print(map);
             moveValid = true;
         }
-        else if(input == "2")
+        else if(input == "2" && !moves.empty())
         {
             deleteMove();
             view->print(map);

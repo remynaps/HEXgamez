@@ -19,6 +19,7 @@ class Player
 public:
     Player(string color, bool isCPU, int number);
     int number;
+    unsigned int globalSeed;
     int turn;
     bool isPlay;
     bool isCPU;
@@ -49,9 +50,12 @@ public:
     pair<int,int>getEndPosition(int playerNumber, int position, vector< vector< int > > &map);
     bool startPath(int position, int playerNumber, vector< vector< int > > &map);
     bool buildPath(int x,int y, int playerNumber, vector<pair<int, int>> &path,  vector<thread> &workers, vector< vector< int > > &map);
-    int monteCarlo(vector< vector< int > > &map);
+    int monteCarlo(vector< vector< int > > &map, int seed);
+    int monteThread(vector< vector< int > > &map);
     bool stepTaken(int x, int y, vector<pair<int,int>> &path, vector< vector< int > > &map);
     bool checkWinner(vector< vector< int > > &map);
+    int getNumberMoves(vector< vector< int > > &map);
+    void loader(int &number);
     bool determineWinner(int x, int y, int playerNumber, vector<pair<int, int>> &path, int &numberConnections, vector<thread> &workers ,vector< vector< int > > &map);
 };
 

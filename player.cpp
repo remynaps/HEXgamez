@@ -16,6 +16,7 @@ Player::Player(string color, bool isCPU, int number)
     this -> color = color;
     this -> isCPU = isCPU;
     this -> number = number;
+    globalSeed = time(0);
 }
 
 //simple method to convert string to int
@@ -177,7 +178,7 @@ pair<int, vector< vector< int > >> Player::minMax(vector< vector< int > > map, i
 
     if (depth >= maxDepth)
     {
-        return make_pair(monteCarlo(map), map);
+        return make_pair(monteThread(map), map);
     }
     int max = -100000;
 
@@ -205,7 +206,7 @@ pair<int, vector< vector< int > >> Player::minMin(vector< vector< int > > map, i
 
     if (depth >= maxDepth)
     {
-        return make_pair(monteCarlo(map), map);
+        return make_pair(monteThread(map), map);
     }
     int min = 100000;
 
@@ -225,83 +226,6 @@ pair<int, vector< vector< int > >> Player::minMin(vector< vector< int > > map, i
     return make_pair(min, bestMap);
 }
 
-int Player::evaluate(vector< vector< int > > map)
-{
-
-    //pair<int,int> move = extractMove(map);
-    int score = 0;
-    for(int i = 0; i < map.size(); i ++)
-    {
-        for(int j = 0; j < map.size(); j++)
-        {
-            if(map[i][j] == number)
-            {
-                for(pair<int,int> connection: getConnections(i,j))
-                {
-                    int x = std::get<0>(connection);
-                    int y = std::get<1>(connection);
-                    if(x < map.size() && x >= 0 && y < map.size() && y >= 0)
-                    {
-                        if(map[x][y] == number)
-                        {
-                            score += 1000;
-                        }
-                        else if(map[x][y] == getOtherPlayer())
-                        {
-                            score -= 100;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return score;
-}
-
-// int Player::scorePath(vector< vector< int > > &map, vector<pair<int, int>> path)
-// {
-//     int length = 0;
-//     for(int i = 0; i < path.size(); i++)
-//     {
-//         int curX = std::get<0>(path[i]);
-//         int curY = std::get<1>(path[i]);
-
-//         switch(map[curX][curY])
-//         {   
-//             case 0:
-//                 length -= 10;
-//                 break;
-//             case 1:
-//                 length += 0;
-//                 break;
-//             case 2:
-//                 length -= 1000;
-//                 break;
-//         }
-//     }
-//     return length;
-// }
-
-// vector<pair<int, int>> Player::getPath(pair<int,int> move, vector< vector< int > > &map)
-// {
-//     int X = std::get<0>(move);
-//     int Y = std::get<1>(move);
-//     int goal = map.size() -1;
-
-//     vector<pair<int,int>> path;
-
-//     for(pair<int,int> connection: getConnections(X,Y))
-//     {
-//         int curX = std::get<0>(connection);
-//         int curY = std::get<1>(connection);
-//         if((goal - curY < goal - Y && number == 1) || (goal - curX < goal - X && number == 2))
-//         {
-//             path.push_back(make_pair(curX,curY));
-//         }
-//     }
-//     return path;
-// }
-
 vector<pair<int, int>> Player::getConnections(int x, int y)
 {
     std::vector<pair<int, int>> moves;
@@ -315,7 +239,7 @@ vector<pair<int, int>> Player::getConnections(int x, int y)
     return moves;
 }
 
-int Player::monteCarlo(vector< vector< int > > &map)
+int Player::getNumberMoves(vector< vector< int > > &map)
 {
     int movesCount = 0;
     for(int i = 0; i < map.size(); i++)
@@ -328,12 +252,17 @@ int Player::monteCarlo(vector< vector< int > > &map)
             }
         }
     }
+    return movesCount;
+}
+
+int Player::monteCarlo(vector< vector< int > > &map, int seed)
+{
+    int movesCount = getNumberMoves(map);
     //cout << movesCount << "??????" << endl;
     //start montecarlo simulation and keep track of the number of times you win
     int timesWon = 0;
-    int timesLost = 0;
     int playerNumber = number;
-    for(int k = 0; k < 50; k++)
+    for(int k = 0; k < 15; k++)
     {
         vector< vector< int > > mapCopy = map;
         int count = 0;
@@ -345,33 +274,16 @@ int Player::monteCarlo(vector< vector< int > > &map)
                 playerNumber = getOtherPlayer();
             }
 
-            int x = rand() % map.size();
-            int y = rand() % map.size();
+            int x = rand_r(&globalSeed) % map.size();
+            int y = rand_r(&globalSeed) % map.size();
+            //int x = rand() % map.size();
+            //int y = rand() % map.size();
             if(mapCopy[x][y] == 0)
             {
                 mapCopy[x][y] = playerNumber;
                 count++;
             }
         }
-        
-        // mapCopy[2][3] = 89;
-        // cout << endl;
-        // for(int i = 0; i < map.size(); i++)
-        // {
-        //     for(int j = 0; j < map.size(); j++)
-        //     {
-        //         cout << map[i][j];
-        //     }
-        // }
-        // cout << endl;
-        // for(int i = 0; i < map.size(); i++)
-        // {
-        //     for(int j = 0; j < map.size(); j++)
-        //     {
-        //         cout << mapCopy[i][j];
-        //     }
-        // }
-        // bool isWinner = checkWinner(mapCopy);
         if(checkWinner(mapCopy))
         {
             //cout << "koek" <<endl;
@@ -380,22 +292,34 @@ int Player::monteCarlo(vector< vector< int > > &map)
         else
         {
             //cout << "meh" <<endl;
-            timesLost++;
+            timesWon--;
         }
-        // else if(winner == 0)
-        // {
-        //     cout << "joji" << endl;
-        // }
     }
     // cout<< timesWon << "-------------------------" << timesLost << endl;
-    return timesWon - timesLost;
+    return timesWon;
+}
+
+int Player::monteThread(vector< vector< int > > &map)
+{
+    int score = 0;
+    auto result1( std::async(launch::async,&Player::monteCarlo,this, ref(map), 100));
+    auto result2( std::async(launch::async,&Player::monteCarlo,this, ref(map), 200));
+    auto result3( std::async(launch::async,&Player::monteCarlo,this, ref(map), 300));
+    auto result4( std::async(launch::async,&Player::monteCarlo,this, ref(map), 400));
+
+    score += result1.get();
+    score += result2.get();
+    score += result3.get();
+    score += result4.get();
+
+    return score;
 }
 
 
 
 
 //-------------------------------------------------------------------------------------
-// I HATE MYSELF FOR DOING THE FOLLOWING
+// I HATE MYSELF FOR DOING THIS
 //-------------------------------------------------------------------------------------
 
 bool Player::checkWinner(vector< vector< int > > &map)
