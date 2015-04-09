@@ -324,17 +324,23 @@ int Player::monteThread(vector< vector< int > > &map)
 
 bool Player::checkWinner(vector< vector< int > > &map)
 {
+    bool winner = false;
+    bool winner2 = false;
     for(int i = 0; i < map.size(); i++)
     {
         if(map[i][map[i].size() -1 ] == 1)
         {
-            return startPath(i, 1, map);
+            winner = startPath(i, 1, map);
         }
         if(map[map[i].size() -1 ][i] == 2)
         {
-            return startPath(i, 2, map);
+            winner2 = startPath(i, 2, map);
         }
         //cout << winner2 << ":::::" << winner1 << endl;
+    }
+    if((winner && 1 == number) || (winner2 && 2 == number))
+    {
+        return true;
     }
     return false;
 }
