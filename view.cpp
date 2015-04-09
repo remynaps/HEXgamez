@@ -31,7 +31,7 @@ void View::print(vector<vector<int> > map)
             cout << " ";
         }
 
-        cout << "\033[1;34m"+to_string(i)+"\033[0m" + "  ";
+        cout << "\033[1;34m"+to_string(i + 1)+"\033[0m" + "  ";
 
         for(int j = 0; j <= map[i].size(); j++)
         {

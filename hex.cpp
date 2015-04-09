@@ -93,8 +93,9 @@ int Game::startingPLayer()
         cout << "            __HEX GAME__" << endl;
         cout << endl << endl;
 
-        cout << "select starting Player :";
-
+        cout << "select starting Player :" << endl;
+        cout << "1 : blue" << endl;
+        cout << "2 : red" << endl;
         cin >> input;
 
         startPlayer = stringToInt(input);

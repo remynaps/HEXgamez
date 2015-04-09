@@ -26,7 +26,7 @@ int stringToInt(string input)
     int value;
     buffer >> value;
 
-    return value;
+    return value - 1;
 }
 
 /*
@@ -76,8 +76,8 @@ string Player::getColor()
 
 pair<int, int> Player::setRandomMove(std::vector< std::vector< int > > &map)
 {
-    int sizex = rand() % map.size();
-    int sizey = rand() % map.size();
+    int sizex = rand() % (map.size());
+    int sizey = rand() % (map.size());
 
     return make_pair(sizex,sizey);
 }
@@ -317,7 +317,6 @@ vector<pair<int, int>> Player::getConnections(int x, int y)
 
 int Player::monteCarlo(vector< vector< int > > &map)
 {
-
     int movesCount = 0;
     for(int i = 0; i < map.size(); i++)
     {
@@ -329,15 +328,15 @@ int Player::monteCarlo(vector< vector< int > > &map)
             }
         }
     }
-
+    //cout << movesCount << "??????" << endl;
     //start montecarlo simulation and keep track of the number of times you win
     int timesWon = 0;
     int timesLost = 0;
     int playerNumber = number;
-    int count = 0;
     for(int k = 0; k < 50; k++)
     {
         vector< vector< int > > mapCopy = map;
+        int count = 0;
         while(count < movesCount)
         {
             playerNumber = number;
@@ -345,7 +344,6 @@ int Player::monteCarlo(vector< vector< int > > &map)
             {
                 playerNumber = getOtherPlayer();
             }
-            int winner = 0;
 
             int x = rand() % map.size();
             int y = rand() % map.size();
@@ -353,20 +351,41 @@ int Player::monteCarlo(vector< vector< int > > &map)
             {
                 mapCopy[x][y] = playerNumber;
                 count++;
-                winner = checkWinner(mapCopy);
-                //cout << count << "_________" << movesCount <<endl;
-            }
-            if(winner == number)
-            {
-                cout << "koek" <<endl;
-                timesWon++;
-            }
-            else if(winner == getOtherPlayer())
-            {
-                cout << "meh" <<endl;
-                timesLost++;
             }
         }
+        
+        // mapCopy[2][3] = 89;
+        // cout << endl;
+        // for(int i = 0; i < map.size(); i++)
+        // {
+        //     for(int j = 0; j < map.size(); j++)
+        //     {
+        //         cout << map[i][j];
+        //     }
+        // }
+        // cout << endl;
+        // for(int i = 0; i < map.size(); i++)
+        // {
+        //     for(int j = 0; j < map.size(); j++)
+        //     {
+        //         cout << mapCopy[i][j];
+        //     }
+        // }
+        // bool isWinner = checkWinner(mapCopy);
+        if(checkWinner(mapCopy))
+        {
+            //cout << "koek" <<endl;
+            timesWon++;
+        }
+        else
+        {
+            //cout << "meh" <<endl;
+            timesLost++;
+        }
+        // else if(winner == 0)
+        // {
+        //     cout << "joji" << endl;
+        // }
     }
     // cout<< timesWon << "-------------------------" << timesLost << endl;
     return timesWon - timesLost;
@@ -379,7 +398,7 @@ int Player::monteCarlo(vector< vector< int > > &map)
 // I HATE MYSELF FOR DOING THE FOLLOWING
 //-------------------------------------------------------------------------------------
 
-int Player::checkWinner(vector< vector< int > > &map)
+bool Player::checkWinner(vector< vector< int > > &map)
 {
     for(int i = 0; i < map.size(); i++)
     {
@@ -391,8 +410,9 @@ int Player::checkWinner(vector< vector< int > > &map)
         {
             return startPath(i, 2, map);
         }
+        //cout << winner2 << ":::::" << winner1 << endl;
     }
-    return 0;
+    return false;
 }
 
 pair<int,int> Player::getEndPosition(int playerNumber, int position, vector< vector< int > > &map)
@@ -412,7 +432,7 @@ pair<int,int> Player::getEndPosition(int playerNumber, int position, vector< vec
 }
 
 //start calculating a [ath when a point is located on the end position and on the start position
-int Player::startPath(int position, int playerNumber, vector< vector< int > > &map)
+bool Player::startPath(int position, int playerNumber, vector< vector< int > > &map)
 {
     vector<pair<int, int>> path;
     vector<thread> workers;
@@ -423,18 +443,14 @@ int Player::startPath(int position, int playerNumber, vector< vector< int > > &m
 
     path.push_back(endPosition);
 
-    int winner = buildPath(endY,endX, playerNumber, path, workers,map);
+    bool winner = buildPath(endY,endX, playerNumber, path, workers,map);
 
-    for(auto &th: workers)
-    {
-        th.join();
-    }
     return winner;
 }
 
 //actually build the path recursivly
 //@todo multithreading when more than one connection is located.
-int Player::buildPath(int currentX, int currentY, int playerNumber, vector<pair<int, int>> &path, vector<thread> &workers, vector< vector< int > > &map)
+bool Player::buildPath(int currentX, int currentY, int playerNumber, vector<pair<int, int>> &path, vector<thread> &workers, vector< vector< int > > &map)
 {
     vector<pair<int, int>> connections = getConnections(currentX,currentY);
     int numberConnections = 0;
@@ -442,44 +458,39 @@ int Player::buildPath(int currentX, int currentY, int playerNumber, vector<pair<
     {
         int x = std::get<0>(connections[i]);
         int y = std::get<1>(connections[i]);
-
         if(x < map.size() && x >= 0 && y < map.size() && y >= 0)
         {
-            return determineWinner(x,y,playerNumber,path, numberConnections, workers,map);
+            bool hasWinner =  determineWinner(x,y,playerNumber,path, numberConnections, workers,map);
+            if(hasWinner)
+            {
+                return true;
+            }
         }
     }
-    return 0;
+    return false;
 }
 
 //determine the winner of the game and quit the game.
-int Player::determineWinner(int x, int y, int playerNumber, vector<pair<int, int>> &path, int &numberConnections, vector<thread> &workers ,vector< vector< int > > &map)
+bool Player::determineWinner(int x, int y, int playerNumber, vector<pair<int, int>> &path, int &numberConnections, vector<thread> &workers ,vector< vector< int > > &map)
 {
     if(map[x][y] == playerNumber && !stepTaken(x,y,path,map))
     {
         path.push_back(make_pair(x,y));
 
-        if(playerNumber == 1 && x == 0)
+        if(playerNumber == 1 && y == 0)
         {
-            return 1;
+            return true;
         }
-        else if(playerNumber == 2 && y == 0)
+        else if(playerNumber == 2 && x == 0)
         {
-            return 2;
+            return true;
         }
         else
         {
-            numberConnections++;
-            if(numberConnections > 1)
-            {
-                return pathThread(x, y, playerNumber, path, workers,map);
-            }
-            else
-            {
-                return buildPath(x, y, playerNumber, path, workers,map);
-            }
+            return buildPath(x, y, playerNumber, path, workers,map);
         }
     }
-    return 0;
+    return false;
 }
 
 bool Player::stepTaken(int x, int y, vector<pair<int,int>> &path, vector< vector< int > > &map)
@@ -498,14 +509,6 @@ bool Player::stepTaken(int x, int y, vector<pair<int,int>> &path, vector< vector
     }
     return false;
 }
-
-
-int Player::pathThread(int x, int y, int playerNumber, vector<pair<int, int>> &path, vector<thread> &workers, vector< vector< int > > &map)
-{
-    auto ret = async(launch::async,&Player::buildPath,this, x, y, playerNumber, ref(path), ref(workers), ref(map));
-    return ret.get();
-}
-
 
 
 

@@ -65,10 +65,10 @@ void Map::setStartPlayer(int playerNumber)
     switch(playerNumber)
     {
         case 1:
-            currentPlayer = player2;
+            currentPlayer = player1;
             break;
         case 2:
-            currentPlayer = player1;
+            currentPlayer = player2;
             break;
     }
 }
@@ -78,12 +78,34 @@ void Map::createPlayers(int gameMode)
     switch(gameMode)
     {
         case 1:
-            player1 = new Player("blue",false, 1);
-            player2 = new Player("red",false, 2);
-            break;
+        player1 = new Player("blue",false, 1);
+        player2 = new Player("red",false, 2);
+        break;
         case 2:
-            player1 = new Player("blue",true, 1);
-            player2 = new Player("red",false, 2);
+            bool valid = false;
+            while(!valid)
+            {
+                string input;
+                cout << "select player" << endl;
+                cout << "1 : blue" << endl;
+                cout << "2 : red" << endl;
+                cin >> input;
+                if(input == "2")
+                {
+                    player1 = new Player("blue",true, 1);
+                    player2 = new Player("red",false, 2);
+                    valid = true;
+                }
+                else if(input == "1")
+                {
+                    player1 = new Player("blue",false, 1);
+                    player2 = new Player("red",true, 2);
+                    valid = true;
+                }
+                else{
+                    cout << "no player" << endl;
+                }
+            }
             break;
     }
 }
@@ -114,7 +136,7 @@ void Map::setMove()
 
 bool Map::giveError(int x, int y, pair<int, int> &coords)
 {
-    if(x >= map.size() || y >= map.size())
+    if(x >= map.size() || y >= map.size() || y < 0 || x < 0)
     {
         cout << "point does not exist" << endl;
         return false;
@@ -139,7 +161,10 @@ void Map::moveMenu()
     bool moveValid = false;
     string input;
 
-    cout << "1 : pierule" << endl;
+    if(moves.size() == 1)
+    {
+        cout << "1 : pierule" << endl;
+    }
 
     cout << "2 : delete move" << endl;
 
@@ -149,7 +174,7 @@ void Map::moveMenu()
     {
         cout << "input option: ";
         cin >> input;
-        if(input == "1")
+        if(input == "1" && moves.size() == 1)
         {
             pieRule();
             view->print(map);
@@ -201,9 +226,12 @@ void Map::pieRule()
         {
             case 1:
                 map[y][x] = 2;
+                break;
             case 2:
                 map[y][x] = 1;
+                break;
         }
+        cout << map[y][x] << endl;
     }
 }
 
