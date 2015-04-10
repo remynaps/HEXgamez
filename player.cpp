@@ -262,7 +262,7 @@ int Player::monteCarlo(vector< vector< int > > &map, int seed)
     //start montecarlo simulation and keep track of the number of times you win
     int timesWon = 0;
     int playerNumber = number;
-    for(int k = 0; k < 15; k++)
+    for(int k = 0; k < 10; k++)
     {
         vector< vector< int > > mapCopy = map;
         int count = 0;
@@ -331,10 +331,18 @@ bool Player::checkWinner(vector< vector< int > > &map)
         if(map[i][map[i].size() -1 ] == 1)
         {
             winner = startPath(i, 1, map);
+            if(winner)
+            {
+                break;
+            }
         }
         if(map[map[i].size() -1 ][i] == 2)
         {
             winner2 = startPath(i, 2, map);
+            if(winner2)
+            {
+                break;
+            }
         }
         //cout << winner2 << ":::::" << winner1 << endl;
     }
