@@ -7,7 +7,7 @@
 using namespace std;
 
 
-//yes.
+//the beauty is real.
 void View::print(vector<vector<int> > map)
 {
     cout << "\x1b[2J\x1b[1;1H";

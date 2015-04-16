@@ -34,6 +34,8 @@ Map::~Map()
     delete player2; 
 }
 
+
+//create a 2d vector of integers
 void Map::createMap(int height, int width)
 {
     for(int i = 0; i < height; i++)
@@ -45,19 +47,6 @@ void Map::createMap(int height, int width)
         }
         map.push_back(temp_vec);
     }
-}
-
-vector<pair<int, int>> Map::getConnections(int x, int y)
-{
-    std::vector<pair<int, int>> moves;
-    moves.push_back(make_pair(x-1,y));
-    moves.push_back(make_pair(x-1,y+1));
-    moves.push_back(make_pair(x,y-1));
-    moves.push_back(make_pair(x,y+1));
-    moves.push_back(make_pair(x+1,y-1));
-    moves.push_back(make_pair(x+1,y));
-
-    return moves;
 }
 
 void Map::setStartPlayer(int playerNumber)
@@ -73,6 +62,7 @@ void Map::setStartPlayer(int playerNumber)
     }
 }
 
+//show a menu to create the players and generate an ai if nessecary.
 void Map::createPlayers(int gameMode)
 {
     switch(gameMode)
@@ -110,6 +100,7 @@ void Map::createPlayers(int gameMode)
     }
 }
 
+//set the move depending on the type of player
 void Map::setMove()
 {
     pair<int, int> coords;
@@ -135,6 +126,7 @@ void Map::setMove()
     }
 }
 
+//check for possible errors in the coordinate and show an error message
 bool Map::giveError(int x, int y, pair<int, int> &coords)
 {
     if(x >= map.size() || y >= map.size() || y < 0 || x < 0)
@@ -156,6 +148,9 @@ bool Map::giveError(int x, int y, pair<int, int> &coords)
     }
 }
 
+//long method
+//this method only shows nessecary menu items depending on the current situations.
+// example: it will only show pierule after the first move is set.
 void Map::moveMenu()
 {
     if(!moves.empty())
@@ -228,6 +223,7 @@ void Map::switchPlayer()
     }
 }
 
+//switch the players.
 void Map::pieRule()
 {
     for(int i = 0; i < moves.size(); i++)
@@ -246,6 +242,34 @@ void Map::pieRule()
         }
         cout << map[y][x] << endl;
     }
+}
+
+void Map::deleteMove()
+{
+    if(!moves.empty())
+    {
+        pair<int,int> move = moves.top();
+
+        int takenX = std::get<0>(move);
+        int takenY = std::get<1>(move);
+
+        map[takenY][takenX] = 0;
+        moves.pop();
+    }
+}
+
+//return all the connections for a given point on the map.
+vector<pair<int, int>> Map::getConnections(int x, int y)
+{
+    std::vector<pair<int, int>> moves;
+    moves.push_back(make_pair(x-1,y));
+    moves.push_back(make_pair(x-1,y+1));
+    moves.push_back(make_pair(x,y-1));
+    moves.push_back(make_pair(x,y+1));
+    moves.push_back(make_pair(x+1,y-1));
+    moves.push_back(make_pair(x+1,y));
+
+    return moves;
 }
 
 //start building a path if a move is detected on the player generated end position.
@@ -378,19 +402,6 @@ bool Map::stepTaken(int x, int y, vector<pair<int,int>> &path)
     return false;
 }
 
-void Map::deleteMove()
-{
-    if(!moves.empty())
-    {
-        pair<int,int> move = moves.top();
-
-        int takenX = std::get<0>(move);
-        int takenY = std::get<1>(move);
-
-        map[takenY][takenX] = 0;
-        moves.pop();
-    }
-}
 
 void Map::update()
 {

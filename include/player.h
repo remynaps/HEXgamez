@@ -9,6 +9,7 @@
 #include <iostream>
 #include <math.h>  
 #include <stack>
+#include "ai.h"
 
 using namespace std;
 
@@ -19,11 +20,11 @@ class Player
 public:
     Player(string color, bool isCPU, int number);
     int number;
-    unsigned int globalSeed;
     int turn;
     bool isPlay;
     bool isCPU;
     bool isWinner; 
+    Ai *ai;
     string color;
     stack<pair<int, int> > moves; 
     void makeMove();
