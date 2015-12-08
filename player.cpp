@@ -23,6 +23,11 @@ Player::Player(string color, bool isCPU, int number)
     }
 }
 
+Player::~Player()
+{
+    // delete ai;
+}
+
 //simple method to convert string to int
 int stringToInt(string input)
 {

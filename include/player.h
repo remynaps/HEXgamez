@@ -7,7 +7,7 @@
 // included dependencies
 #include <chrono>
 #include <iostream>
-#include <math.h>  
+#include <math.h>
 #include <stack>
 #include "ai.h"
 
@@ -19,14 +19,15 @@ class Player
 {
 public:
     Player(string color, bool isCPU, int number);
+    ~Player();
     int number;
     int turn;
     bool isPlay;
     bool isCPU;
-    bool isWinner; 
+    bool isWinner;
     Ai *ai;
     string color;
-    stack<pair<int, int> > moves; 
+    stack<pair<int, int> > moves;
     void makeMove();
     string getColor();
     pair<int, int> getInput(string input);
@@ -60,4 +61,4 @@ public:
     bool determineWinner(int x, int y, int playerNumber, vector<pair<int, int>> &path, int &numberConnections, vector<thread> &workers ,vector< vector< int > > &map);
 };
 
-#endif // __PLAYER_H_INCLUDED__ 
+#endif // __PLAYER_H_INCLUDED__

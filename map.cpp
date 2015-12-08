@@ -11,12 +11,12 @@ using namespace std;
 
 Map::Map(int width, int height, int gameMode, int maxStep, int startPlayer)
 {
-    view = new View();
+    view  = new View();
     hasWinner = false;
+
 
     this -> createMap(height, width);
     this -> createPlayers(gameMode);
-
     this -> width = width;
     this -> height = height;
     this -> gameMode = gameMode;
@@ -31,7 +31,7 @@ Map::~Map()
 {
     delete view;
     delete player1;
-    delete player2; 
+    delete player2;
 }
 
 
@@ -307,7 +307,7 @@ pair<int,int> Map::getEndPosition(int playerNumber, int position)
     throw invalid_argument("playerNumber does not exist");
 }
 
-//start calculating a [ath when a point is located on the end position and on the start position
+//start calculating a path when a point is located on the end position and on the start position
 void Map::startPath(int position, int playerNumber)
 {
     vector<pair<int, int>> path;
@@ -392,7 +392,7 @@ bool Map::stepTaken(int x, int y, vector<pair<int,int>> &path)
         pair<int,int> takenStep = path[j];
 
         int takenX = std::get<0>(takenStep);
-        int takenY = std::get<1>(takenStep); 
+        int takenY = std::get<1>(takenStep);
 
         if(takenY == y && takenX == x)
         {
@@ -410,12 +410,3 @@ void Map::update()
     view->print(map);
     switchPlayer();
 }
-
-
-
-
-
-
-
-
-
